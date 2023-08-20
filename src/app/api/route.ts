@@ -1,11 +1,12 @@
-import { writeFile } from "fs"
+import { NextResponse, type NextRequest } from "next/server"
 import { env } from "@/env.mjs"
-import { OpenAIStream, StreamingTextResponse } from "ai"
 import { ImapFlow } from "imapflow"
 import { simpleParser, type ParsedMail } from "mailparser"
 import OpenAI from "openai"
+import { kv } from "upstash-kv"
+import { z } from "zod"
 
-const getParseEmail = async () => {
+const imap = async () => {
     const imapClient = new ImapFlow({
         host: "imap.gmail.com",
         port: 993,
@@ -22,22 +23,7 @@ const getParseEmail = async () => {
 
     const data = await imapClient.fetchOne("25470", {
         source: true,
-        headers: true,
-        internalDate: true,
-        bodyStructure: true,
-        envelope: true,
-        bodyParts: ["1"],
     })
-
-    const parsed = await simpleParser(data.source)
-
-    console.log(
-        parsed.from,
-        parsed.to,
-        parsed.subject,
-        parsed.date,
-        parsed.text,
-    )
 
     // console.log(
     //     data.headers.toString(),
@@ -51,7 +37,7 @@ const getParseEmail = async () => {
 
     imapClient.close()
 
-    return parsed
+    return data
 }
 
 const openAI = async (parsed: ParsedMail) => {
@@ -72,9 +58,8 @@ const openAI = async (parsed: ParsedMail) => {
     // )
 
     // Request the OpenAI API for the response based on the prompt
-    const response = await openai.chat.completions.create({
+    const res = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
-        stream: true,
         messages: [
             {
                 role: "system",
@@ -84,23 +69,59 @@ const openAI = async (parsed: ParsedMail) => {
             {
                 role: "user",
 
-                content: `From: ${parsed.from?.text}\nTo: ${// @ts-ignore
-                parsed.to?.text}\nSubject: ${
+                content: `From: ${parsed.from?.text}\nTo: ${
+                    parsed.to instanceof Array
+                        ? parsed.to.flatMap((item) => item.text).join(", ")
+                        : parsed.to?.text
+                }\nSubject: ${
                     parsed.subject
                 }\nDate: ${parsed.date?.toDateString()}\nBody:\n${parsed.text}`,
             },
         ],
     })
 
-    // Convert the response into a friendly text-stream
-    const stream = OpenAIStream(response)
+    console.log(res.choices[0]?.message.content)
 
-    // Respond with the stream
-    return new StreamingTextResponse(stream)
+    return res.choices[0]?.message.content
 }
 
 export const GET = async () => {
-    const parsed = await getParseEmail()
+    if (env.NODE_ENV === "production") {
+        return new Response("Not available in production", {
+            status: 400,
+        })
+    }
+    const imapData = await imap()
 
-    return openAI(parsed)
+    const parsed = await simpleParser(imapData.source)
+
+    return await openAI(parsed)
+}
+
+export const POST = async (req: NextRequest) => {
+    const res = await req.formData()
+
+    console.log(res.getAll("file"))
+
+    const email = res.get("email")
+
+    if (!z.string().email().safeParse(email).success) {
+        return new Response(null, {
+            status: 400,
+            statusText: "Invalid email",
+        })
+    }
+
+    await kv.lrem("emails", 0, email?.toString())
+    await kv.rpush("emails", email?.toString())
+
+    const parsed = await simpleParser(
+        Buffer.from(await (res.get("file") as File).arrayBuffer()),
+    )
+
+    const aiRes = await openAI(parsed)
+
+    console.log(aiRes)
+
+    return new NextResponse(aiRes)
 }
