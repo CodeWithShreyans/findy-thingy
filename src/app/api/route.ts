@@ -63,8 +63,7 @@ const openAI = async (parsed: ParsedMail) => {
         messages: [
             {
                 role: "system",
-                content:
-                    "Analyze the contents of this email and output a keyword-only (no supporting words) indexable description that can be searched by giving the index back to you along with a short description of the email required.",
+                content: await kv.get<string>("prompt"),
             },
             {
                 role: "user",
