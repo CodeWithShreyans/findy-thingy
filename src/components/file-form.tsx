@@ -1,13 +1,21 @@
 "use client"
 
-import Link from "next/link"
 import { useForm } from "react-hook-form"
 
 import { useAiResStore, useSubmitStateStore } from "@/lib/state"
 // import { onSubmit } from "./server-action"
 import { Button } from "./ui/button"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "./ui/dialog"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
+import { Separator } from "./ui/separator"
 
 export const FileForm = () => {
     const form = useForm()
@@ -54,13 +62,62 @@ export const FileForm = () => {
                 />
                 <desc className="text-[0.8rem] text-muted-foreground">
                     Upload your email as a file. This is not stored anywhere.{" "}
-                    <Link
-                        href="https://google.com"
-                        target="_blank"
-                        className="underline"
-                    >
-                        Instructions
-                    </Link>
+                    <Dialog>
+                        <DialogTrigger className="underline">
+                            Instructions
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Instructions</DialogTitle>
+                                <Separator />
+                                <DialogDescription>
+                                    <div className="space-y-2 mt-2">
+                                        <div>
+                                            <span className="text-secondary-foreground">
+                                                Gmail:
+                                            </span>
+                                            <ol className="list-decimal list-inside">
+                                                <li>
+                                                    Open an email (Preferrably
+                                                    one with text content).
+                                                </li>
+                                                <li>
+                                                    Click the three dots near
+                                                    the reply button.
+                                                </li>
+                                                <li>
+                                                    Select the &quot;Download
+                                                    message&quot; option.
+                                                </li>
+                                            </ol>
+                                        </div>
+
+                                        <div>
+                                            <span className="text-secondary-foreground">
+                                                Apple Mail:
+                                            </span>
+                                            <ol className="list-decimal list-inside">
+                                                <li>
+                                                    Open an email (Preferrably
+                                                    one with text content).
+                                                </li>
+                                                <li>
+                                                    Select File &gt; Save As in
+                                                    the menubar.
+                                                </li>
+                                                <li>
+                                                    Choose &quot;Raw Message
+                                                    Source&quot; in the Format
+                                                    dropdown.
+                                                </li>
+                                                <li>Click Save.</li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </DialogDescription>
+                            </DialogHeader>
+                        </DialogContent>
+                    </Dialog>
                 </desc>
             </div>
 
