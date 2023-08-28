@@ -9,9 +9,6 @@ await import("./src/env.mjs")
 /** @type {import("next").NextConfig} */
 const Nextconfig = {
     reactStrictMode: true,
-    experimental: {
-        serverActions: true,
-    },
 }
 
 const millionConfig = { auto: { rsc: true } }

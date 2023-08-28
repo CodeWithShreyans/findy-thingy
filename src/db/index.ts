@@ -1,7 +1,9 @@
-import { neon, neonConfig } from "@neondatabase/serverless"
-import { drizzle } from "drizzle-orm/neon-http"
+import Database from "better-sqlite3"
+import { drizzle } from "drizzle-orm/better-sqlite3"
+import { migrate } from "drizzle-orm/better-sqlite3/migrator"
 
-neonConfig.fetchConnectionCache = true
-const sql = neon(process.env.DRIZZLE_DATABASE_URL!)
+const sqlite = new Database("sqlite.db")
 
-export const db = drizzle(sql)
+export const db = drizzle(sqlite)
+
+migrate(db, { migrationsFolder: "drizzle" })

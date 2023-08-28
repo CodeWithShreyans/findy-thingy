@@ -1,9 +1,9 @@
 "use client"
 
+import { useUser } from "@clerk/nextjs"
 import { useForm } from "react-hook-form"
 
 import { useAiResStore, useSubmitStateStore } from "@/lib/state"
-// import { onSubmit } from "./server-action"
 import { Button } from "./ui/button"
 import {
     Dialog,
@@ -20,6 +20,8 @@ import { Separator } from "./ui/separator"
 export const FileForm = () => {
     const form = useForm()
 
+    const { user } = useUser()
+
     const onSubmit = async (formData: FormData) => {
         useSubmitStateStore.setState({ submitState: "loading" })
 
@@ -33,18 +35,14 @@ export const FileForm = () => {
     }
 
     return (
-        <form
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            action={onSubmit}
-            className="flex flex-col gap-4"
-        >
+        <form action={void onSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
-                <Label htmlFor="email">Your Email</Label>
+                <Label htmlFor="email">Your Email (optional)</Label>
                 <Input
                     {...form.register("email")}
                     type="email"
                     name="email"
-                    required
+                    defaultValue={user?.emailAddresses[0]?.emailAddress}
                 />
                 <desc className="text-[0.8rem] text-muted-foreground">
                     Your email will be added to our waitlist.
@@ -52,10 +50,9 @@ export const FileForm = () => {
             </div>
 
             <div className="flex flex-col gap-2">
-                <Label htmlFor="file">Email File</Label>
+                <Label htmlFor="file">Email File (optional)</Label>
                 <Input
                     {...form.register("file")}
-                    required
                     type="file"
                     name="file"
                     accept=".eml,message/rfc822"
