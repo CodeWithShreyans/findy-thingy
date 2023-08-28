@@ -1,7 +1,13 @@
+import { env } from "@/env.mjs"
 import { auth, clerkClient } from "@clerk/nextjs"
 import { google } from "googleapis"
 
 export const GET = async () => {
+    if (env.NODE_ENV === "production") {
+        return new Response("Not available in production", {
+            status: 400,
+        })
+    }
     const clerk = auth()
     const f = await clerkClient.users.getUserOauthAccessToken(
         clerk.userId!,

@@ -1,3 +1,5 @@
+import { Analytics } from "@vercel/analytics/react"
+
 import { ThemeProvider } from "@/components/theme-provider"
 
 import "./globals.css"
@@ -35,6 +37,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
                         </header>
                         <main className="flex flex-col gap-2">{children}</main>
                     </ThemeProvider>
+                    <Analytics />
                 </body>
             </html>
         </ClerkProvider>
