@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server"
-import { db } from "@/db"
-import { index } from "@/db/schema"
+// import { db } from "@/db"
+// import { index } from "@/db/schema"
 import { env } from "@/env.mjs"
 import { auth, clerkClient } from "@clerk/nextjs"
 import { google } from "googleapis"
@@ -147,28 +147,28 @@ const openAI = async (parsed: ParsedMail) => {
     return res.choices[0]?.message.content
 }
 
-const writeToDB = (
-    source: "imap" | "gmail",
-    parsed: ParsedMail,
-    desc: string,
-    imapId?: string,
-) => {
-    const writeRes = db
-        .insert(index)
-        .values({
-            imapId: source === "imap" ? imapId : null,
-            gmailId: source === "gmail" ? "TODO" : null,
-            from: parsed.from?.text,
-            date: parsed.date?.getTime(),
-            subject: parsed.subject,
-            description: desc,
-        })
-        .run()
+// const writeToDB = (
+//     source: "imap" | "gmail",
+//     parsed: ParsedMail,
+//     desc: string,
+//     imapId?: string,
+// ) => {
+//     const writeRes = db
+//         .insert(index)
+//         .values({
+//             imapId: source === "imap" ? imapId : null,
+//             gmailId: source === "gmail" ? "TODO" : null,
+//             from: parsed.from?.text,
+//             date: parsed.date?.getTime(),
+//             subject: parsed.subject,
+//             description: desc,
+//         })
+//         .run()
 
-    console.log(writeRes)
+//     console.log(writeRes)
 
-    return writeRes
-}
+//     return writeRes
+// }
 
 export const GET = async () => {
     // let imap = null
