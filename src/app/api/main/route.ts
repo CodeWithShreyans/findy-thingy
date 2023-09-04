@@ -2,40 +2,105 @@ import { NextResponse, type NextRequest } from "next/server"
 import { db } from "@/db"
 import { index } from "@/db/schema"
 import { env } from "@/env.mjs"
+import { auth, clerkClient } from "@clerk/nextjs"
+import { google } from "googleapis"
 import { ImapFlow } from "imapflow"
 import { simpleParser, type ParsedMail } from "mailparser"
 import OpenAI from "openai"
 import { kv } from "upstash-kv"
 import { z } from "zod"
 
-const imap = async () => {
-    const imapClient = new ImapFlow({
-        host: "imap.gmail.com",
-        port: 993,
-        secure: true,
-        auth: {
-            user: "shreyansthebest2007@gmail.com",
-            pass: "hgjfxmnuxjfvwkbk",
-        },
+interface ParsedMessage {
+    mail: ParsedMail
+    imapId?: string
+    gmailId?: string
+}
+
+// const openImap = async () => {
+//     const imapClient = new ImapFlow({
+//         host: "imap.gmail.com",
+//         port: 993,
+//         secure: true,
+//         auth: {
+//             user: "shreyansthebest2007@gmail.com",
+//             pass: "hgjfxmnuxjfvwkbk",
+//         },
+//     })
+//     await imapClient.connect()
+//     const lock = await imapClient.getMailboxLock("INBOX")
+
+//     return {
+//         imapClient,
+//         [Symbol.dispose]() {
+//             lock.release()
+//             imapClient.close()
+//         },
+//     }
+// }
+
+// const imapFetch = async () => {
+//     using imap = await openImap()
+
+//     const {imapClient} = imap
+
+//     // 25470, 25832
+//     const messages = imapClient.fetch("25807:*", {
+//         source: true,
+//         uid: true,
+//     })
+
+//     // console.log(
+//     //     data.headers.toString(),
+//     //     data.internalDate,
+//     //     data.bodyStructure,
+//     //     data.envelope,
+//     //     data.bodyParts.get("1")?.toString(),
+//     // )
+
+//     const parsedMessages: ParsedMessage[] = []
+//     for await (const msg of messages) {
+//         const parsed = await simpleParser(msg.source)
+//         parsedMessages.push({ mail: parsed, imapId: String(msg.uid) })
+//     }
+
+//     return { messages: parsedMessages }
+// }
+
+const gmailFetch = async () => {
+    const clerk = auth()
+    const oauthToken = await clerkClient.users.getUserOauthAccessToken(
+        clerk.userId!,
+        "oauth_google",
+    )
+
+    const list = await google.gmail("v1").users.messages.list({
+        userId: "me",
+        oauth_token: oauthToken?.[0]?.token,
+        maxResults: 5,
+        q: "in:inbox",
     })
-    await imapClient.connect()
-    const lock = await imapClient.getMailboxLock("INBOX")
 
-    // 25470, 25832
-    const messages = imapClient.fetch("25807:*", {
-        source: true,
-        uid: true,
-    })
+    const messages: ParsedMessage[] = []
+    for (const message of list.data.messages!) {
+        messages.push({
+            mail: await simpleParser(
+                Buffer.from(
+                    (
+                        await google.gmail("v1").users.messages.get({
+                            userId: "me",
+                            id: message.id ?? undefined,
+                            oauth_token: oauthToken?.[0]?.token,
+                            format: "raw",
+                        })
+                    ).data.raw!,
+                    "base64url",
+                ),
+            ),
+            gmailId: message.id!,
+        })
+    }
 
-    // console.log(
-    //     data.headers.toString(),
-    //     data.internalDate,
-    //     data.bodyStructure,
-    //     data.envelope,
-    //     data.bodyParts.get("1")?.toString(),
-    // )
-
-    return { messages, imapClient, lock }
+    return { messages }
 }
 
 const openAI = async (parsed: ParsedMail) => {
@@ -106,17 +171,28 @@ const writeToDB = (
 }
 
 export const GET = async () => {
-    if (env.NODE_ENV === "production") {
-        return new Response("Not available in production", {
-            status: 400,
-        })
-    }
-    console.log("hello")
-    const { messages, imapClient, lock } = await imap()
+    // let imap = null
+    // if (env.NODE_ENV !== "production") imap = req.nextUrl.searchParams.get("imap")
+    // const gmail = req.nextUrl.searchParams.get("gmail")
 
-    for await (const msg of messages) {
-        const parsed = await simpleParser(msg.source)
-        const desc = await openAI(parsed)
+    // let messages: ParsedMessage[]
+
+    // const { messages } = imap
+    //     ? await imapFetch()
+    //     : gmail
+    //     ? await gmailFetch()
+    //     : { messages: null }
+
+    const { messages } = await gmailFetch()
+
+    // if (!messages) {
+    //     return new Response("Email fetch method not chosen", { status: 400 })
+    // }
+
+    const res: Array<{ subject: string; desc: string }> = []
+
+    for (const msg of messages) {
+        const desc = await openAI(msg.mail)
         if (
             desc === "MESSAGE TOO LONG" ||
             desc === "NO TEXT" ||
@@ -124,13 +200,11 @@ export const GET = async () => {
             desc === undefined
         )
             continue
-        writeToDB("imap", parsed, desc, String(msg.uid))
+        // writeToDB("imap", msg.mail, desc, msg.imapId ?? msg.gmailId)
+        res.push({ subject: msg.mail.subject!, desc: desc })
     }
 
-    lock.release()
-    imapClient.close()
-
-    return new Response()
+    return new Response(JSON.stringify(res))
 }
 
 export const POST = async (req: NextRequest) => {
@@ -151,18 +225,22 @@ export const POST = async (req: NextRequest) => {
 
     const file = res.get("file")
 
-    if (file) {
+    if ((!file || (file instanceof File && file.size === 0)) && email) {
+        return new Response(
+            JSON.stringify([
+                { subject: "Thanks for signing up to the waitlist!", desc: "" },
+            ]),
+        )
+    } else if (file instanceof File && file.size !== 0) {
         const parsed = await simpleParser(
             Buffer.from(await (res.get("file") as File).arrayBuffer()),
         )
 
         const aiRes = await openAI(parsed)
 
-        return new Response(aiRes)
-    }
-
-    if (!file && email) {
-        return new Response("Thanks for signing up to the waitlist!")
+        return new Response(
+            JSON.stringify([{ subject: parsed.subject, desc: aiRes }]),
+        )
     }
 
     return new NextResponse("No file or email provided")

@@ -1,7 +1,7 @@
 import { create } from "zustand"
 
-export const useAiResStore = create(() => ({
-    aiRes: "",
+export const useResStore = create(() => ({
+    res: [{ subject: "", desc: "" }],
 }))
 
 export const useSubmitStateStore = create(() => ({
