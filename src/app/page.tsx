@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { SignInButton, useAuth } from "@clerk/nextjs"
+import { ReloadIcon } from "@radix-ui/react-icons"
 import { For } from "million/react"
 import { Balancer } from "react-wrap-balancer"
 
@@ -80,7 +81,15 @@ const Home = () => {
                         <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <Button onClick={gmailFetch}>Start</Button>
+                                    <Button
+                                        onClick={gmailFetch}
+                                        disabled={submitState === "loading"}
+                                    >
+                                        {submitState === "loading" ? (
+                                            <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+                                        ) : null}
+                                        Start
+                                    </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     <p>

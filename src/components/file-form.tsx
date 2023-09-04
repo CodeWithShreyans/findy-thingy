@@ -1,6 +1,7 @@
 "use client"
 
 import { useUser } from "@clerk/nextjs"
+import { ReloadIcon } from "@radix-ui/react-icons"
 import { useForm } from "react-hook-form"
 
 import { useResStore, useSubmitStateStore } from "@/lib/state"
@@ -27,6 +28,7 @@ const onSubmit = async (formData: FormData) => {
 
 // million-ignore
 export const FileForm = () => {
+    const { submitState } = useSubmitStateStore()
     const form = useForm()
 
     const { user } = useUser()
@@ -60,7 +62,12 @@ export const FileForm = () => {
                 </desc>
             </div>
 
-            <Button type="submit">Submit</Button>
+            <Button type="submit" disabled={submitState === "loading"}>
+                {submitState === "loading" ? (
+                    <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+                ) : null}
+                Submit
+            </Button>
         </form>
     )
 }
