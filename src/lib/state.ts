@@ -1,9 +1,17 @@
 import { create } from "zustand"
 
-export const useResStore = create(() => ({
+interface Res {
+    res: Array<{ subject: string; desc: string }>
+}
+
+interface SubmitState {
+    submitState: "idle" | "loading"
+}
+
+export const useResStore = create<Res>(() => ({
     res: [{ subject: "", desc: "" }],
 }))
 
-export const useSubmitStateStore = create(() => ({
+export const useSubmitStateStore = create<SubmitState>(() => ({
     submitState: "idle",
 }))

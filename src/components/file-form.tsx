@@ -44,9 +44,9 @@ export const FileForm = () => {
                     name="email"
                     defaultValue={user?.emailAddresses[0]?.emailAddress}
                 />
-                <desc className="text-[0.8rem] text-muted-foreground">
+                <p className="text-[0.8rem] text-muted-foreground">
                     Your email will be added to our waitlist.
-                </desc>
+                </p>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -57,9 +57,9 @@ export const FileForm = () => {
                     name="file"
                     accept=".eml,message/rfc822"
                 />
-                <desc className="text-[0.8rem] text-muted-foreground">
+                <p className="text-[0.8rem] text-muted-foreground">
                     Upload your email as a file. This is not stored anywhere.
-                </desc>
+                </p>
             </div>
 
             <Button type="submit" disabled={submitState === "loading"}>
