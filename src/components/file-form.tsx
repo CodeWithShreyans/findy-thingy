@@ -1,7 +1,7 @@
 "use client"
 
 import { useUser } from "@clerk/nextjs"
-import { ReloadIcon } from "@radix-ui/react-icons"
+import { RotateCw } from "lucide-react"
 import { useForm } from "react-hook-form"
 
 import { useResStore, useSubmitStateStore } from "@/lib/state"
@@ -64,7 +64,7 @@ export const FileForm = () => {
 
             <Button type="submit" disabled={submitState === "loading"}>
                 {submitState === "loading" ? (
-                    <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+                    <RotateCw className="mr-2 h-4 w-4 animate-spin" />
                 ) : null}
                 Submit
             </Button>

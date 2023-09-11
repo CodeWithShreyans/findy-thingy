@@ -9,7 +9,7 @@ interface SubmitState {
 }
 
 export const useResStore = create<Res>(() => ({
-    res: [{ subject: "", desc: "" }],
+    res: [],
 }))
 
 export const useSubmitStateStore = create<SubmitState>(() => ({

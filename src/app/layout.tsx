@@ -1,3 +1,4 @@
+import { dark } from "@clerk/themes"
 import { Analytics } from "@vercel/analytics/react"
 
 import { ThemeProvider } from "@/components/theme-provider"
@@ -6,7 +7,8 @@ import "./globals.css"
 
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import { auth as clerkAuth, ClerkProvider, UserButton } from "@clerk/nextjs"
+import { ClerkProvider } from "@clerk/nextjs"
+import { Provider } from "react-wrap-balancer"
 
 import { cn } from "@/lib/utils"
 
@@ -22,20 +24,20 @@ export const metadata: Metadata = {
 }
 
 const RootLayout = ({ children }: { children: React.ReactNode }) => {
-    const { userId } = clerkAuth()
     return (
-        <ClerkProvider>
+        <ClerkProvider appearance={{ baseTheme: dark }}>
             <html lang="en">
-                <body className={cn(inter.className, "p-4")}>
+                <body className={cn(inter.className, "p-4 pt-8 h-screen")}>
                     <ThemeProvider
                         attribute="class"
                         defaultTheme="system"
                         enableSystem
                     >
-                        <header className="flex items-end justify-end">
-                            {userId ? <UserButton /> : null}
-                        </header>
-                        <main className="flex flex-col gap-2">{children}</main>
+                        <Provider>
+                            <main className="flex flex-col gap-2 min-h-full items-center justify-center">
+                                {children}
+                            </main>
+                        </Provider>
                     </ThemeProvider>
                     <Analytics />
                 </body>

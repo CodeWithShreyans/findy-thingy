@@ -14,6 +14,4 @@ const Nextconfig = {
     },
 }
 
-const millionConfig = { auto: { rsc: true } }
-
-export default million.next(Nextconfig, millionConfig)
+export default million.next(Nextconfig)
