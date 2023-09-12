@@ -1,5 +1,7 @@
 "use client"
 
+import "@/app/body.css"
+
 import { For } from "million/react"
 import Balancer from "react-wrap-balancer"
 

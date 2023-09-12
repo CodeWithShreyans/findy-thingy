@@ -1,3 +1,4 @@
+import Footer from "@/components/footer"
 import TryButton from "@/components/try-button"
 
 const Home = () => {
@@ -30,6 +31,7 @@ const Home = () => {
                 </p>
                 <TryButton />
             </section>
+            <Footer />
         </>
     )
 }

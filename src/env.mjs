@@ -12,6 +12,7 @@ export const env = createEnv({
         UPSTASH_REDIS_REST_URL: z.string().url(),
         UPSTASH_REDIS_REST_TOKEN: z.string(),
         CLERK_SECRET_KEY: z.string().length(50),
+        RESEND_API_KEY: z.string(),
     },
 
     /**
@@ -37,6 +38,7 @@ export const env = createEnv({
         UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
         UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
         CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
+        RESEND_API_KEY: process.env.RESEND_API_KEY,
 
         NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
             process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,

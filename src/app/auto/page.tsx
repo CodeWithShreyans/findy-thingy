@@ -1,5 +1,7 @@
 "use client"
 
+import "@/app/body.css"
+
 import { useAuth, useSignIn } from "@clerk/nextjs"
 import { RotateCw } from "lucide-react"
 import { For } from "million/react"

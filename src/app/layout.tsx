@@ -2,6 +2,7 @@ import { dark } from "@clerk/themes"
 import { Analytics } from "@vercel/analytics/react"
 
 import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/toaster"
 
 import "./globals.css"
 
@@ -11,6 +12,7 @@ import { ClerkProvider } from "@clerk/nextjs"
 import { Provider } from "react-wrap-balancer"
 
 import { cn } from "@/lib/utils"
+import Footer from "@/components/footer"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -27,7 +29,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
     return (
         <ClerkProvider appearance={{ baseTheme: dark }}>
             <html lang="en">
-                <body className={cn(inter.className, "p-4 pt-8 h-screen")}>
+                <body className={cn(inter.className, "p-4 pt-8 min-h-screen")}>
                     <ThemeProvider
                         attribute="class"
                         defaultTheme="system"
@@ -40,6 +42,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
                         </Provider>
                     </ThemeProvider>
                     <Analytics />
+                    <Toaster />
                 </body>
             </html>
         </ClerkProvider>
