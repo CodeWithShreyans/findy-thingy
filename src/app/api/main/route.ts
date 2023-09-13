@@ -4,7 +4,6 @@ import { NextResponse, type NextRequest } from "next/server"
 import { env } from "@/env.mjs"
 import { auth, clerkClient } from "@clerk/nextjs"
 import { google } from "googleapis"
-import { ImapFlow } from "imapflow"
 import { simpleParser, type ParsedMail } from "mailparser"
 import OpenAI from "openai"
 import { kv } from "upstash-kv"
@@ -225,13 +224,13 @@ export const POST = async (req: NextRequest) => {
 
     const file = res.get("file")
 
-    if ((!file || (file instanceof File && file.size === 0)) && email) {
+    if ((!file || (file instanceof Blob && file.size === 0)) && email) {
         return new Response(
             JSON.stringify([
                 { subject: "Thanks for signing up to the waitlist!", desc: "" },
             ]),
         )
-    } else if (file instanceof File && file.size !== 0) {
+    } else if (file instanceof Blob && file.size !== 0) {
         const parsed = await simpleParser(
             Buffer.from(await (res.get("file") as File).arrayBuffer()),
         )
