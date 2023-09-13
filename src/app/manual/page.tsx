@@ -76,7 +76,7 @@ const Page = () => {
 
                 <FileForm />
             </section>
-            <section className="mt-2">
+            <section className="mt-2 mx-auto">
                 {submitState === "loading" ? (
                     <div className="flex flex-col self-center gap-2">
                         <Skeleton className="h-6 w-full" />
