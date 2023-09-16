@@ -35,6 +35,7 @@ const config = {
             callees: ["twmerge", "clsx", "cn"],
         },
     },
+    ignorePatterns: ["src/components/ui/*.tsx"],
 }
 
 module.exports = config
