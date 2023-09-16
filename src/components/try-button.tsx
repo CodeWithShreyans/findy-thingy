@@ -85,7 +85,7 @@ const Page = () => {
                             {submitState === "loading" ? (
                                 <RotateCw className="mr-2 h-4 w-4 animate-spin" />
                             ) : null}
-                            Save changes
+                            Submit
                         </Button>
                     </DialogFooter>
                 </form>
