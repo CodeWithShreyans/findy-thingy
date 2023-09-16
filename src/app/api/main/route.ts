@@ -75,7 +75,7 @@ const gmailFetch = async () => {
     const list = await google.gmail("v1").users.messages.list({
         userId: "me",
         oauth_token: oauthToken?.[0]?.token,
-        maxResults: 3,
+        maxResults: 5,
         q: "in:inbox",
     })
 
