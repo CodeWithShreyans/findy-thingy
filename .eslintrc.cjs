@@ -10,6 +10,7 @@ const config = {
         "plugin:@typescript-eslint/recommended-type-checked",
         "plugin:@typescript-eslint/stylistic-type-checked",
     ],
+    ignorePatterns: ["/src/components/ui/*.tsx"],
     rules: {
         "@typescript-eslint/consistent-type-imports": [
             "warn",
@@ -35,7 +36,6 @@ const config = {
             callees: ["twmerge", "clsx", "cn"],
         },
     },
-    ignorePatterns: ["src/components/ui/*.tsx"],
 }
 
 module.exports = config

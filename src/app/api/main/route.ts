@@ -66,35 +66,41 @@ interface ParsedMessage {
 // }
 
 const gmailFetch = async () => {
+    console.time("auth")
     const clerk = auth()
     const oauthToken = await clerkClient.users.getUserOauthAccessToken(
         clerk.userId!,
         "oauth_google",
     )
+    console.timeEnd("auth")
 
+    console.time("fetch")
     const list = await google.gmail("v1").users.messages.list({
         userId: "me",
         oauth_token: oauthToken?.[0]?.token,
-        maxResults: 5,
+        maxResults: 1,
         q: "in:inbox",
     })
+    console.timeEnd("fetch")
 
     const messages: ParsedMessage[] = []
     for (const message of list.data.messages!) {
+        console.time("msg" + message.id)
+        const msg = (
+            await google.gmail("v1").users.messages.get({
+                userId: "me",
+                id: message.id ?? undefined,
+                oauth_token: oauthToken?.[0]?.token,
+                format: "raw",
+            })
+        ).data.raw!
+
+        console.timeEnd("msg" + message.id)
+        console.time("parse" + message.id)
+        const parsed = await simpleParser(Buffer.from(msg, "base64url"))
+        console.timeEnd("parse" + message.id)
         messages.push({
-            mail: await simpleParser(
-                Buffer.from(
-                    (
-                        await google.gmail("v1").users.messages.get({
-                            userId: "me",
-                            id: message.id ?? undefined,
-                            oauth_token: oauthToken?.[0]?.token,
-                            format: "raw",
-                        })
-                    ).data.raw!,
-                    "base64url",
-                ),
-            ),
+            mail: parsed,
             gmailId: message.id!,
         })
     }
@@ -121,13 +127,10 @@ const openAI = async (parsed: ParsedMail) => {
     }\nDate: ${parsed.date?.toDateString()}\nBody:\n${parsed.text}`
     console.log(content.length)
 
-    let model: "gpt-3.5-turbo" | "gpt-3.5-turbo-16k"
-    if (content.length < 7000) model = "gpt-3.5-turbo"
-    else if (content.length < 24000) model = "gpt-3.5-turbo-16k"
-    else return "MESSAGE TOO LONG"
+    if (content.length > 7000) return "MESSAGE TOO LONG"
 
     const res = await openai.chat.completions.create({
-        model: model,
+        model: "gpt-3.5-turbo",
         messages: [
             {
                 role: "system",
@@ -190,6 +193,7 @@ export const GET = async () => {
 
     const res: Array<{ subject: string; desc: string }> = []
 
+    console.time("gpt")
     for (const msg of messages) {
         const desc = await openAI(msg.mail)
         if (
@@ -202,6 +206,7 @@ export const GET = async () => {
         // writeToDB("imap", msg.mail, desc, msg.imapId ?? msg.gmailId)
         res.push({ subject: msg.mail.subject!, desc: desc })
     }
+    console.timeEnd("gpt")
 
     return new Response(JSON.stringify(res))
 }
