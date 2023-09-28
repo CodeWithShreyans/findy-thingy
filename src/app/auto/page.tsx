@@ -71,7 +71,7 @@ const Page = () => {
                         </TooltipTrigger>
                         <TooltipContent>
                             <p className="text-sm">
-                                Summarise the last 5 emails from your inbox
+                                Summarise the last email from your inbox
                             </p>
                         </TooltipContent>
                     </Tooltip>
