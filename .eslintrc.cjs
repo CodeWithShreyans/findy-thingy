@@ -12,6 +12,7 @@ const config = {
     ],
     ignorePatterns: ["/src/components/ui/*.tsx"],
     rules: {
+        "no-console": ["warn"],
         "@typescript-eslint/consistent-type-imports": [
             "warn",
             {

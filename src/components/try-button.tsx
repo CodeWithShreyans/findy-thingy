@@ -44,9 +44,7 @@ const Page = () => {
             }
         >
             <DialogTrigger asChild>
-                <Button className="text-xl font-semibold p-6">
-                    Try it Out
-                </Button>
+                <Button className="text-xl font-semibold p-6">Sign up</Button>
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>

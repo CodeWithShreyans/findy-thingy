@@ -6,9 +6,8 @@ const Home = () => {
         <>
             <section className="flex flex-col gap-8 items-center justify-center h-screen font-bold text-center">
                 <h1 className="text-7xl">
-                    Find your stuff <br />
-                    with just a{" "}
-                    <span className="underline decoration-wavy">sentence</span>
+                    search your emails <br />
+                    with <span className="underline">ai</span>
                 </h1>
                 <TryButton />
             </section>

@@ -1,8 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server"
+import { db } from "@/db"
+import { main } from "@/db/schema"
 // import { db } from "@/db"
 // import { index } from "@/db/schema"
 import { env } from "@/env.mjs"
 import { auth, clerkClient } from "@clerk/nextjs"
+import {
+    type SignedInAuthObject,
+    type SignedOutAuthObject,
+} from "@clerk/nextjs/server"
+import { eq } from "drizzle-orm"
 import { google } from "googleapis"
 import { simpleParser, type ParsedMail } from "mailparser"
 import OpenAI from "openai"
@@ -65,9 +72,22 @@ interface ParsedMessage {
 //     return { messages: parsedMessages }
 // }
 
-const gmailFetch = async () => {
+const alreadyIndexed = await db.query.main.findMany({
+    where: eq(main.userId, "user_2UZLBlyilBNuHhU6foi8aGbVq9r"),
+    columns: {
+        userId: false,
+        date: false,
+        description: false,
+        from: false,
+        id: false,
+        imapId: false,
+        subject: false,
+    },
+})
+
+const gmailFetch = async (clerk: SignedInAuthObject | SignedOutAuthObject) => {
     console.time("auth")
-    const clerk = auth()
+
     const oauthToken = await clerkClient.users.getUserOauthAccessToken(
         clerk.userId!,
         "oauth_google",
@@ -78,13 +98,14 @@ const gmailFetch = async () => {
     const list = await google.gmail("v1").users.messages.list({
         userId: "me",
         oauth_token: oauthToken?.[0]?.token,
-        maxResults: 1,
-        q: "in:inbox",
+        maxResults: 200,
+        q: "in:inbox from:support@buildspace.so",
     })
     console.timeEnd("fetch")
 
     const messages: ParsedMessage[] = []
     for (const message of list.data.messages!) {
+        if (alreadyIndexed.find((v) => message.id === v.gmailId)) continue
         console.time("msg" + message.id)
         const msg = (
             await google.gmail("v1").users.messages.get({
@@ -185,7 +206,9 @@ export const GET = async () => {
     //     ? await gmailFetch()
     //     : { messages: null }
 
-    const { messages } = await gmailFetch()
+    const clerk = auth()
+
+    const { messages } = await gmailFetch(clerk)
 
     // if (!messages) {
     //     return new Response("Email fetch method not chosen", { status: 400 })
@@ -195,6 +218,7 @@ export const GET = async () => {
 
     console.time("gpt")
     for (const msg of messages) {
+        if (alreadyIndexed.find((v) => msg.gmailId === v.gmailId)) continue
         const desc = await openAI(msg.mail)
         if (
             desc === "MESSAGE TOO LONG" ||
@@ -205,8 +229,22 @@ export const GET = async () => {
             continue
         // writeToDB("imap", msg.mail, desc, msg.imapId ?? msg.gmailId)
         res.push({ subject: msg.mail.subject!, desc: desc })
+        await db
+            .insert(main)
+            .values({
+                userId: clerk.userId,
+                imapId: msg.imapId,
+                gmailId: msg.gmailId,
+                from: msg.mail.from?.text,
+                date: msg.mail.date?.getTime(),
+                subject: msg.mail.subject,
+                description: desc,
+            })
+            .onConflictDoNothing()
     }
     console.timeEnd("gpt")
+
+    console.log("res", res)
 
     return new Response(JSON.stringify(res))
 }

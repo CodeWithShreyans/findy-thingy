@@ -11,6 +11,7 @@ const Nextconfig = {
     reactStrictMode: true,
     experimental: {
         serverActions: true,
+        serverComponentsExternalPackages: ["libsql"],
     },
 }
 

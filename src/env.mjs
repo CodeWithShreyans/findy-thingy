@@ -7,12 +7,14 @@ export const env = createEnv({
      * isn't built with invalid env vars.
      */
     server: {
-        NODE_ENV: z.enum(["development", "test", "production"]),
+        NODE_ENV: z.enum(["development", "test", "production"]).optional(),
         OPENAI_API_KEY: z.string(),
         UPSTASH_REDIS_REST_URL: z.string().url(),
         UPSTASH_REDIS_REST_TOKEN: z.string(),
         CLERK_SECRET_KEY: z.string().length(50),
         RESEND_API_KEY: z.string(),
+        DB_URL: z.string(),
+        DB_AUTH_TOKEN: z.string(),
     },
 
     /**
@@ -39,6 +41,8 @@ export const env = createEnv({
         UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
         CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
         RESEND_API_KEY: process.env.RESEND_API_KEY,
+        DB_URL: process.env.DB_URL,
+        DB_AUTH_TOKEN: process.env.DB_AUTH_TOKEN,
 
         NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
             process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,

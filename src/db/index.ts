@@ -1,9 +1,19 @@
-// import Database from "better-sqlite3"
-// import { drizzle } from "drizzle-orm/better-sqlite3"
-// import { migrate } from "drizzle-orm/better-sqlite3/migrator"
+import { env } from "@/env.mjs"
+import { createClient } from "@libsql/client"
+import { drizzle } from "drizzle-orm/libsql"
+import { migrate } from "drizzle-orm/libsql/migrator"
 
-// const sqlite = new Database("sqlite.db")
+import * as schema from "./schema"
 
-// export const db = drizzle(sqlite)
+const client = createClient({
+    url: env.DB_URL,
+    authToken: env.DB_AUTH_TOKEN,
+    tls: true,
+    // fetch: fetch,
+})
 
-// migrate(db, { migrationsFolder: "drizzle" })
+export const db = drizzle(client, {
+    schema: schema,
+})
+
+await migrate(db, { migrationsFolder: "drizzle" })
