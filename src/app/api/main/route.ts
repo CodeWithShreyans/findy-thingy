@@ -5,12 +5,16 @@ import { main } from "@/db/schema"
 // import { index } from "@/db/schema"
 import { env } from "@/env.mjs"
 import { auth, clerkClient } from "@clerk/nextjs"
+<<<<<<< Updated upstream
 import {
     type SignedInAuthObject,
     type SignedOutAuthObject,
 } from "@clerk/nextjs/server"
 import { eq } from "drizzle-orm"
 import { google } from "googleapis"
+=======
+import { GaxiosResponse, google } from "googleapis"
+>>>>>>> Stashed changes
 import { simpleParser, type ParsedMail } from "mailparser"
 import OpenAI from "openai"
 import { kv } from "upstash-kv"
@@ -103,6 +107,7 @@ const gmailFetch = async (clerk: SignedInAuthObject | SignedOutAuthObject) => {
     })
     console.timeEnd("fetch")
 
+<<<<<<< Updated upstream
     const messages: ParsedMessage[] = []
     for (const message of list.data.messages!) {
         if (alreadyIndexed.find((v) => message.id === v.gmailId)) continue
@@ -115,16 +120,49 @@ const gmailFetch = async (clerk: SignedInAuthObject | SignedOutAuthObject) => {
                 format: "raw",
             })
         ).data.raw!
+=======
+    const mailIds = list.data.messages?.map((msg) => msg.id)
+    const emailPromises = mailIds?.map((mailId) =>
+        google.gmail("v1").users.messages.get({
+            userId: "me",
+            id: mailId ?? undefined,
+            oauth_token: oauthToken?.[0]?.token,
+            format: "raw",
+        }),
+    )
+>>>>>>> Stashed changes
 
-        console.timeEnd("msg" + message.id)
-        console.time("parse" + message.id)
-        const parsed = await simpleParser(Buffer.from(msg, "base64url"))
-        console.timeEnd("parse" + message.id)
-        messages.push({
-            mail: parsed,
-            gmailId: message.id!,
+    const messages = (await Promise.allSettled(
+        emailPromises as unknown[],
+    )) as Array<
+        PromiseSettledResult<
+            Array<{
+                data: { raw: string }
+            }>
+        >
+    >
+
+    // const messages: ParsedMessage[] = []
+    // for (const message of list.data.messages!) {
+    //     console.time("msg" + message.id)
+    const msg = (
+        await google.gmail("v1").users.messages.get({
+            userId: "me",
+            id: message.id ?? undefined,
+            oauth_token: oauthToken?.[0]?.token,
+            format: "raw",
         })
-    }
+    ).data.raw
+
+    //     console.timeEnd("msg" + message.id)
+    //     console.time("parse" + message.id)
+    //     const parsed = await simpleParser(Buffer.from(msg, "base64url"))
+    //     console.timeEnd("parse" + message.id)
+    //     messages.push({
+    //         mail: parsed,
+    //         gmailId: message.id!,
+    //     })
+    // }
 
     return { messages }
 }
