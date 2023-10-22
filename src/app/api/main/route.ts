@@ -5,16 +5,12 @@ import { main } from "@/db/schema"
 // import { index } from "@/db/schema"
 import { env } from "@/env.mjs"
 import { auth, clerkClient } from "@clerk/nextjs"
-<<<<<<< Updated upstream
 import {
     type SignedInAuthObject,
     type SignedOutAuthObject,
 } from "@clerk/nextjs/server"
 import { eq } from "drizzle-orm"
 import { google } from "googleapis"
-=======
-import { GaxiosResponse, google } from "googleapis"
->>>>>>> Stashed changes
 import { simpleParser, type ParsedMail } from "mailparser"
 import OpenAI from "openai"
 import { kv } from "upstash-kv"
@@ -107,7 +103,6 @@ const gmailFetch = async (clerk: SignedInAuthObject | SignedOutAuthObject) => {
     })
     console.timeEnd("fetch")
 
-<<<<<<< Updated upstream
     const messages: ParsedMessage[] = []
     for (const message of list.data.messages!) {
         if (alreadyIndexed.find((v) => message.id === v.gmailId)) continue
@@ -120,17 +115,6 @@ const gmailFetch = async (clerk: SignedInAuthObject | SignedOutAuthObject) => {
                 format: "raw",
             })
         ).data.raw!
-=======
-    const mailIds = list.data.messages?.map((msg) => msg.id)
-    const emailPromises = mailIds?.map((mailId) =>
-        google.gmail("v1").users.messages.get({
-            userId: "me",
-            id: mailId ?? undefined,
-            oauth_token: oauthToken?.[0]?.token,
-            format: "raw",
-        }),
-    )
->>>>>>> Stashed changes
 
     const messages = (await Promise.allSettled(
         emailPromises as unknown[],
@@ -324,4 +308,5 @@ export const POST = async (req: NextRequest) => {
     }
 
     return new NextResponse("No file or email provided")
+}
 }
